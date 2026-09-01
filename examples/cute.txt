@@ -1,0 +1,11 @@
+tema: cute;
+autor: Icons + Social;
+titulo: Cupid's Community;
+descricao: Um espaço acolhedor para conversar, criar amizades e compartilhar interesses. ♡;
+cor: #FFB6D9;
+secoes: Informações|Use o bom senso, respeite todos e siga os Termos do Discord.|💗 >> Booster perks|Cargo personalizado, destaque no perfil e acesso a benefícios especiais.|🎀 >> Social|Apresente-se, escolha seus interesses e participe das conversas.|🌸;
+opcoes: Apresentações|apresentacoes|Vá ao canal de apresentações e conte um pouco sobre você.|Conheça a comunidade, Booster perks|boosters|Confira todos os benefícios disponíveis.|Benefícios;
+botoes: Entrar na comunidade|success|Que bom ter você aqui! ♡|💞;
+animacao: pulse;
+intervalo: 5s;
+rodape: safe • social • friendly

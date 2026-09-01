@@ -1,0 +1,11 @@
+tema: gaming;
+autor: Player Card;
+titulo: Perfil do Jogador;
+descricao: Sua central pessoal de estatísticas, equipamentos e conquistas.;
+cor: #00A8FC;
+secoes: Carteira|8.170 créditos\n5 pontos de prestígio|💎|sim >> Equipamentos|Picareta da 3ª Era\nEspada Lendária\nAmuleto de Proteção|⚒️|sim >> Multiplicador|3.45× de experiência ativa|🎟️|sim;
+opcoes: Estatísticas|stats|Suas estatísticas foram carregadas.|Ver números, Inventário|inventario|Seu inventário foi carregado.|Ver itens, Conquistas|conquistas|Suas conquistas foram carregadas.|Ver troféus;
+botoes: Atualizar perfil|primary|Perfil atualizado com sucesso.|🔄;
+animacao: pulse;
+intervalo: 4s;
+rodape: Perfil atualizado automaticamente
