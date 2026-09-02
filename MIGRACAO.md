@@ -1,4 +1,6 @@
-# Migração para a versão 2.0
+# Migração
+
+## Da versão 1.x para a 2.0
 
 1. Encerre a versão antiga com `Ctrl + C`.
 2. Extraia o ZIP 2.0 em uma pasta nova, por exemplo `discord-cv2-studio-v2`.
@@ -31,3 +33,7 @@ npm run dev
 6. No Discord, teste `/template` com o modelo `Regras e moderação`.
 
 Não copie `node_modules` nem `dist`. Nunca compartilhe o `.env`, pois ele contém o token do bot.
+
+## Respostas completas da versão 2.1
+
+Nenhuma alteração manual no arquivo JSON é necessária. Opções e botões antigos continuam usando `response`; o novo campo `responsePanel` só é criado quando `/resposta configurar` é utilizado.

@@ -1,6 +1,6 @@
 {
   "name": "discord-cv2-studio",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "description": "Bot Discord em TypeScript para criar painéis Components V2, dropdowns e animações.",

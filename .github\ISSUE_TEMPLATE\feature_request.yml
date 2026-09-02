@@ -1,0 +1,31 @@
+name: Sugerir um recurso
+description: Proponha uma melhoria para o bot.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema ou necessidade
+      description: Qual situação esta proposta pretende resolver?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Solução proposta
+      description: Descreva o comportamento desejado e, se possível, um exemplo de uso.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: Há outra forma de resolver a necessidade?
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Verificações
+      options:
+        - label: Pesquisei as issues existentes.
+          required: true

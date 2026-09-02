@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.0
+
+- Respostas Components V2 completas para dropdowns e botões.
+- Editor guiado `/resposta configurar` com banner e miniatura.
+- Temas, cores, seções, galeria, rodapé e até cinco botões por resposta.
+- Respostas públicas ou privadas configuradas individualmente.
+- Pré-visualização privada e remoção segura da configuração avançada.
+- Botões internos com respostas CV2 e links externos.
+- Compatibilidade automática com os painéis e arquivos JSON da versão 2.0.
+- Template `/exemplo` atualizado para demonstrar respostas ricas.
+
 ## 2.0.0
 
 - Cinco temas visuais.

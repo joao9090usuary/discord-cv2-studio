@@ -1,0 +1,36 @@
+EXEMPLO: RESPOSTA CV2 COMPLETA
+
+1. Crie o painel principal:
+
+/painel pedido: tema: elegant; titulo: Central da Comunidade; descricao: Escolha uma área.; cor: #5865F2; opcoes: Consultar cargos|cargos|Os cargos são liberados conforme sua participação.|Progressão|🏆, Ver eventos|eventos|Confira a programação do servidor.|Agenda|📅, Solicitar suporte|suporte|Procure a equipe no canal de suporte.|Atendimento|🎫; botoes: Confirmar|success|Seleção confirmada.|✅; rodape: Central oficial
+
+2. Copie o ID administrativo recebido na confirmação privada.
+
+3. Execute:
+
+/resposta configurar painel_id:SEU_ID origem:Opção do dropdown alvo:cargos publica:Não
+
+4. No formulário, preencha:
+
+Título da resposta:
+Sistema de cargos e progressão
+
+Descrição:
+Veja como evoluir e desbloquear benefícios exclusivos.
+
+Visual e identificação:
+tema: gaming; cor: #9B59FF; autor: Sistema de níveis; rodape: Progrida participando de forma saudável
+
+Seções:
+Como ganhar XP|Converse, participe de eventos e ajude outros membros.|⭐|sim >> Progressão|Aprendiz ➜ 1.000 XP\nVeterano ➜ 5.000 XP\nMestre ➜ 10.000 XP|🏆|sim >> Benefícios|Cores, eventos e canais exclusivos.|🎁
+
+Galeria e botões:
+imagem: https://example.com/banner.gif|Banner de progressão; botoes: Confirmar leitura|success|Informações confirmadas.|✅ >> Documentação|link|https://example.com|🔗
+
+5. Para conferir sem publicar no canal:
+
+/resposta visualizar painel_id:SEU_ID origem:Opção do dropdown alvo:cargos
+
+6. Para voltar à resposta simples:
+
+/resposta remover painel_id:SEU_ID origem:Opção do dropdown alvo:cargos

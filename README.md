@@ -25,6 +25,8 @@ O **Discord CV2 Studio** é um bot em TypeScript para montar e publicar painéis
 - Banners e miniaturas enviados como anexo ou informados por URL.
 - Animações de Container `pulse` e `rainbow` com intervalo controlado.
 - Respostas privadas para dropdowns e botões.
+- Respostas CV2 completas com tema, seções, mídia, miniatura, rodapé e novas ações.
+- Editor administrativo `/resposta` com configuração, prévia e remoção.
 - Persistência local em JSON para restaurar painéis e animações após reinicializações.
 - Neutralização de menções inseridas pelo usuário e validação com Zod.
 - Testes automatizados para parser e renderização.
@@ -37,6 +39,7 @@ O **Discord CV2 Studio** é um bot em TypeScript para montar e publicar painéis
 - [Configuração segura](#configuração-segura)
 - [Primeiro painel](#primeiro-painel)
 - [Sintaxe avançada](#sintaxe-avançada)
+- [Respostas CV2 completas](#respostas-cv2-completas)
 - [Imagens e animações](#imagens-e-animações)
 - [Desenvolvimento](#desenvolvimento)
 - [Estrutura](#estrutura)
@@ -50,7 +53,7 @@ Depois de iniciar o bot, execute `/exemplo` em um canal no qual ele possa enviar
 - Container temático;
 - título, descrição e múltiplas seções;
 - separadores automáticos;
-- dropdown com respostas privadas;
+- dropdown com respostas CV2 completas;
 - botões interativos;
 - animação de cor do Container.
 
@@ -66,6 +69,9 @@ Para experimentar um layout pronto, execute `/template` e escolha um dos modelos
 | `/exemplo` | Publica uma demonstração que reúne os principais recursos. |
 | `/ajuda` | Exibe formatos, campos e exemplos dentro do Discord. |
 | `/animacao` | Inicia ou pausa a animação usando o ID administrativo do painel. |
+| `/resposta configurar` | Abre o editor completo da resposta de uma opção ou botão. |
+| `/resposta visualizar` | Exibe uma prévia privada da resposta configurada. |
+| `/resposta remover` | Remove o layout avançado e restaura a resposta simples. |
 
 ## Instalação
 
@@ -179,7 +185,7 @@ secoes: Cargos|Aprendiz ➜ 1.000 XP\nMestre ➜ 10.000 XP|🏆|sim >> Benefíci
 
 ### Dropdown
 
-Formato: `Rótulo|valor_interno|resposta_privada|descrição_curta`. Separe as opções com vírgulas.
+Formato: `Rótulo|valor_interno|resposta|descrição_curta|emoji`. Separe as opções com vírgulas.
 
 ### Botões
 
@@ -188,6 +194,73 @@ Estilos disponíveis: `primary`, `secondary`, `success`, `danger` e `link`.
 ```text
 botoes: Confirmar|success|Escolha confirmada.|✅ >> Documentação|link|https://example.com|🔗
 ```
+
+## Respostas CV2 completas
+
+Cada opção do dropdown e cada botão que não seja um link pode abrir outro painel completo. A configuração fica armazenada junto do painel original e sobrevive às reinicializações do bot.
+
+### 1. Obtenha o ID do painel
+
+Depois de criar um painel, o bot envia uma confirmação privada como:
+
+```text
+Painel criado. ID administrativo: a1b2c3d4
+```
+
+### 2. Abra o editor
+
+Para configurar uma opção do dropdown:
+
+```text
+/resposta configurar painel_id:a1b2c3d4 origem:Opção do dropdown alvo:cargos publica:Não
+```
+
+`alvo` aceita o valor interno (`cargos`) ou o nome visível da opção (`Consultar cargos`). Para botões, use o número começando em 1 ou o nome exibido:
+
+```text
+/resposta configurar painel_id:a1b2c3d4 origem:Botão alvo:1
+```
+
+O comando também aceita um banner e uma miniatura, incluindo GIF ou WebP animado.
+
+### 3. Preencha o formulário
+
+O editor possui cinco áreas:
+
+1. **Título da resposta** — título principal da nova tela.
+2. **Descrição** — introdução com Markdown e emojis.
+3. **Visual e identificação** — tema, cor, autor, rodapé e miniatura por URL.
+4. **Seções** — até seis blocos no formato `Título|Texto|Emoji|sim`.
+5. **Galeria e botões** — até dez imagens e cinco ações.
+
+Exemplo do campo visual:
+
+```text
+tema: elegant; cor: #9B59FF; autor: Central de cargos; rodape: Progressão oficial
+```
+
+Exemplo das seções:
+
+```text
+Como evoluir|Participe das conversas e eventos.|⭐|sim >> Benefícios|Cores e canais exclusivos.|🎁
+```
+
+Exemplo de galeria e ações:
+
+```text
+imagem: https://example.com/banner.gif|Banner animado; botoes: Confirmar|success|Escolha confirmada.|✅ >> Site|link|https://example.com|🔗
+```
+
+Use `publica:Não` para mostrar a resposta somente a quem interagiu. Se selecionar `publica:Sim`, cada uso publicará a resposta no canal.
+
+### Prévia e restauração
+
+```text
+/resposta visualizar painel_id:a1b2c3d4 origem:Opção do dropdown alvo:cargos
+/resposta remover painel_id:a1b2c3d4 origem:Opção do dropdown alvo:cargos
+```
+
+A remoção não apaga a opção ou o botão: somente elimina o layout avançado e reativa o texto simples original.
 
 ## Imagens e animações
 
@@ -244,6 +317,7 @@ O [guia completo](docs/GUIA-COMPLETO-CV2-STUDIO.md) explica, passo a passo, desd
 
 Também estão disponíveis:
 
+- [Catálogo de Containers profissionais](examples/CATALOGO-CONTAINERS-PROFISSIONAIS.md)
 - [Como contribuir](CONTRIBUTING.md)
 - [Política de segurança](SECURITY.md)
 - [Histórico de mudanças](CHANGELOG.md)
