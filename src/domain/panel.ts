@@ -4,6 +4,7 @@ export interface SelectOptionSpec {
   description?: string;
   response: string;
   emoji?: string;
+  responsePanel?: PanelResponseSpec;
 }
 
 export interface AnimationFrame {
@@ -40,6 +41,28 @@ export interface PanelButtonSpec {
   response?: string;
   url?: string;
   emoji?: string;
+  responsePanel?: PanelResponseSpec;
+}
+
+export type PanelResponseVisibility = "private" | "public";
+
+/**
+ * Painel Components V2 exibido como resultado de um dropdown ou botão.
+ * A propriedade é opcional nas ações para manter compatibilidade com os
+ * arquivos JSON criados antes do editor de respostas avançadas.
+ */
+export interface PanelResponseSpec {
+  title: string;
+  description: string;
+  color: number;
+  footer: string;
+  visibility: PanelResponseVisibility;
+  theme?: PanelTheme;
+  author?: string;
+  thumbnailUrl?: string;
+  sections?: PanelSectionSpec[];
+  media?: PanelMediaSpec[];
+  buttons?: PanelButtonSpec[];
 }
 
 export interface PanelSpec {

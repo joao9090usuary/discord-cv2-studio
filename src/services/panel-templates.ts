@@ -1,4 +1,4 @@
-import type { CreatePanelInput } from "../domain/panel.js";
+import type { CreatePanelInput, PanelResponseSpec } from "../domain/panel.js";
 import { parsePanelRequest } from "./request-parser.js";
 
 export const templateChoices = [
@@ -78,5 +78,67 @@ const templateRequests: Record<string, string> = {
 
 export function getPanelTemplate(name: string): CreatePanelInput | undefined {
   const request = templateRequests[name];
-  return request ? parsePanelRequest(request) : undefined;
+  if (!request) return undefined;
+  const panel = parsePanelRequest(request);
+  if (name !== "comunidade") return panel;
+
+  const responses: Record<string, PanelResponseSpec> = {
+    regras: {
+      title: "Central de regras",
+      description: "Consulte os princípios essenciais antes de participar da comunidade.",
+      color: 0x23a55a,
+      footer: "Normas oficiais • Resposta privada",
+      visibility: "private",
+      theme: "rules",
+      author: "Equipe de moderação",
+      sections: [
+        { heading: "Respeito", body: "Trate todos com educação e não pratique discriminação.", emoji: "🛡️", quote: true },
+        { heading: "Segurança", body: "Não compartilhe golpes, spam ou conteúdo malicioso.", emoji: "🔒", quote: true },
+      ],
+      buttons: [
+        { label: "Confirmar leitura", style: "success", response: "Leitura das regras confirmada.", emoji: "✅" },
+      ],
+    },
+    eventos: {
+      title: "Agenda de eventos",
+      description: "Acompanhe as próximas atividades e prepare-se para participar.",
+      color: 0xfee75c,
+      footer: "Programação sujeita a atualizações",
+      visibility: "private",
+      theme: "elegant",
+      author: "Equipe de eventos",
+      thumbnailUrl: "https://cdn.discordapp.com/embed/avatars/3.png",
+      sections: [
+        { heading: "Evento semanal", body: "Encontro da comunidade • Sexta-feira, 20h.", emoji: "📅" },
+        { heading: "Recompensas", body: "Participantes podem receber cargos e destaques especiais.", emoji: "🎁" },
+      ],
+      buttons: [
+        { label: "Tenho interesse", style: "primary", response: "Interesse registrado. Acompanhe o canal de eventos!", emoji: "🔔" },
+      ],
+    },
+    suporte: {
+      title: "Atendimento e suporte",
+      description: "Escolha a ação necessária e forneça detalhes para agilizar o atendimento.",
+      color: 0xeb459e,
+      footer: "Nunca envie senhas ou tokens",
+      visibility: "private",
+      theme: "cute",
+      author: "Central de atendimento",
+      sections: [
+        { heading: "Antes de começar", body: "Explique o problema, quando aconteceu e o resultado esperado.", emoji: "📝", quote: true },
+      ],
+      buttons: [
+        { label: "Iniciar solicitação", style: "primary", response: "Solicitação iniciada. Procure a equipe no canal de suporte.", emoji: "🎫" },
+        { label: "Problema urgente", style: "danger", response: "Avise um moderador responsável sem marcar toda a equipe.", emoji: "🚨" },
+      ],
+    },
+  };
+
+  return {
+    ...panel,
+    options: panel.options.map((option) => ({
+      ...option,
+      ...(responses[option.value] ? { responsePanel: responses[option.value] } : {}),
+    })),
+  };
 }

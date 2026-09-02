@@ -81,6 +81,96 @@ export const commandBuilders = [
           { name: "Pausar", value: "stop" },
         ),
     ),
+  new SlashCommandBuilder()
+    .setName("resposta")
+    .setDescription("Configura painéis CV2 completos para dropdowns e botões")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("configurar")
+        .setDescription("Abre o editor visual de uma resposta")
+        .addStringOption((option) =>
+          option
+            .setName("painel_id")
+            .setDescription("ID administrativo exibido ao criar o painel")
+            .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName("origem")
+            .setDescription("Elemento que abrirá a resposta")
+            .setRequired(true)
+            .addChoices(
+              { name: "Opção do dropdown", value: "option" },
+              { name: "Botão", value: "button" },
+            ),
+        )
+        .addStringOption((option) =>
+          option
+            .setName("alvo")
+            .setDescription("Valor/nome da opção ou número/nome do botão")
+            .setRequired(true),
+        )
+        .addBooleanOption((option) =>
+          option
+            .setName("publica")
+            .setDescription("Se ativa, todos verão a resposta; por padrão ela é privada"),
+        )
+        .addAttachmentOption((option) =>
+          option.setName("banner").setDescription("Banner ou GIF da resposta"),
+        )
+        .addAttachmentOption((option) =>
+          option.setName("miniatura").setDescription("Miniatura ou GIF da resposta"),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("visualizar")
+        .setDescription("Mostra uma prévia privada da resposta configurada")
+        .addStringOption((option) =>
+          option.setName("painel_id").setDescription("ID administrativo do painel").setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName("origem")
+            .setDescription("Elemento que abre a resposta")
+            .setRequired(true)
+            .addChoices(
+              { name: "Opção do dropdown", value: "option" },
+              { name: "Botão", value: "button" },
+            ),
+        )
+        .addStringOption((option) =>
+          option
+            .setName("alvo")
+            .setDescription("Valor/nome da opção ou número/nome do botão")
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("remover")
+        .setDescription("Retorna uma resposta ao formato simples")
+        .addStringOption((option) =>
+          option.setName("painel_id").setDescription("ID administrativo do painel").setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName("origem")
+            .setDescription("Elemento que abre a resposta")
+            .setRequired(true)
+            .addChoices(
+              { name: "Opção do dropdown", value: "option" },
+              { name: "Botão", value: "button" },
+            ),
+        )
+        .addStringOption((option) =>
+          option
+            .setName("alvo")
+            .setDescription("Valor/nome da opção ou número/nome do botão")
+            .setRequired(true),
+        ),
+    ),
 ];
 
 export const commandsJson = commandBuilders.map((command) => command.toJSON());

@@ -10,17 +10,34 @@ import {
   type Interaction,
   type ModalSubmitInteraction,
 } from "discord.js";
-import type { CreatePanelInput, PanelSpec } from "./domain/panel.js";
+import type { CreatePanelInput, PanelResponseSpec, PanelSpec } from "./domain/panel.js";
 import { AnimationManager } from "./services/animation-manager.js";
 import {
   renderButtonResponse,
   renderHelp,
   renderPanel,
+  renderResponseActionResult,
+  renderResponsePanel,
   renderSelectionResponse,
 } from "./services/panel-renderer.js";
+import {
+  assignResponsePanel,
+  findResponseTarget,
+  getResponseTargetItem,
+  removeResponsePanel,
+  resolveResponsePanel,
+  responseTargetLabel,
+  type ResponseTargetKind,
+} from "./services/panel-responses.js";
 import type { PanelStore } from "./services/panel-store.js";
 import { getPanelTemplate } from "./services/panel-templates.js";
 import { parsePanelRequest } from "./services/request-parser.js";
+import {
+  applyResponseDraftMedia,
+  buildResponseStudioModal,
+  ResponseDraftStore,
+  responseModalToSpec,
+} from "./services/response-studio.js";
 import { buildStudioModal, studioModalToRequest } from "./services/studio-modal.js";
 
 type PanelCreationInteraction = ChatInputCommandInteraction | ModalSubmitInteraction;
@@ -28,6 +45,7 @@ type PanelCreationInteraction = ChatInputCommandInteraction | ModalSubmitInterac
 export function createBot(store: PanelStore): Client {
   const client = new Client({ intents: [GatewayIntentBits.Guilds] });
   const animations = new AnimationManager(client, store);
+  const responseDrafts = new ResponseDraftStore();
 
   client.once(Events.ClientReady, (readyClient) => {
     animations.restoreAll();
@@ -36,7 +54,7 @@ export function createBot(store: PanelStore): Client {
   });
 
   client.on(Events.InteractionCreate, (interaction) => {
-    void handleInteraction(interaction, store, animations).catch(async (error) => {
+    void handleInteraction(interaction, store, animations, responseDrafts).catch(async (error) => {
       console.error("Falha ao processar interação", error);
       if (!interaction.isRepliable()) return;
       const message = "Não consegui concluir essa ação. Confira o formato e tente novamente.";
@@ -55,6 +73,7 @@ async function handleInteraction(
   interaction: Interaction,
   store: PanelStore,
   animations: AnimationManager,
+  responseDrafts: ResponseDraftStore,
 ): Promise<void> {
   if (interaction.isStringSelectMenu() && interaction.customId.startsWith("cv2-panel:")) {
     const panel = store.get(interaction.customId.slice("cv2-panel:".length));
@@ -62,8 +81,37 @@ async function handleInteraction(
       await interaction.reply({ content: "Este painel não está mais registrado.", flags: MessageFlags.Ephemeral });
       return;
     }
+    const target = findResponseTarget(panel, "option", interaction.values[0] ?? "") ?? {
+      kind: "option" as const,
+      index: -1,
+    };
+    const response = resolveResponsePanel(panel, target);
     await interaction.reply({
       components: renderSelectionResponse(panel, interaction.values[0] ?? ""),
+      flags: responseFlags(response),
+    });
+    return;
+  }
+
+  if (interaction.isButton() && interaction.customId.startsWith("cv2-ract:")) {
+    const [, panelId, rawKind, rawSourceIndex, rawActionIndex] = interaction.customId.split(":");
+    const panel = panelId ? store.get(panelId) : undefined;
+    if (!panel) {
+      await interaction.reply({ content: "Esta resposta não está mais registrada.", flags: MessageFlags.Ephemeral });
+      return;
+    }
+    const target = {
+      kind: rawKind === "o" ? "option" as const : "button" as const,
+      index: Number.parseInt(rawSourceIndex ?? "-1", 10),
+    };
+    const response = resolveResponsePanel(panel, target);
+    const action = response.buttons?.[Number.parseInt(rawActionIndex ?? "-1", 10)];
+    if (!action || action.style === "link") {
+      await interaction.reply({ content: "Esta ação não está mais disponível.", flags: MessageFlags.Ephemeral });
+      return;
+    }
+    await interaction.reply({
+      components: renderResponseActionResult(panel, response, action),
       flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
     });
     return;
@@ -76,10 +124,17 @@ async function handleInteraction(
       await interaction.reply({ content: "Esta ação não está mais registrada.", flags: MessageFlags.Ephemeral });
       return;
     }
+    const buttonIndex = Number.parseInt(rawIndex ?? "-1", 10);
+    const response = resolveResponsePanel(panel, { kind: "button", index: buttonIndex });
     await interaction.reply({
-      components: renderButtonResponse(panel, Number.parseInt(rawIndex ?? "-1", 10)),
-      flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+      components: renderButtonResponse(panel, buttonIndex),
+      flags: responseFlags(response),
     });
+    return;
+  }
+
+  if (interaction.isModalSubmit() && interaction.customId.startsWith("cv2-response-config:")) {
+    await handleResponseModal(interaction, store, responseDrafts);
     return;
   }
 
@@ -147,6 +202,11 @@ async function handleInteraction(
 
   if (interaction.commandName === "animacao") {
     await controlAnimation(interaction, store, animations);
+    return;
+  }
+
+  if (interaction.commandName === "resposta") {
+    await handleResponseCommand(interaction, store, responseDrafts);
   }
 }
 
@@ -243,6 +303,150 @@ function attachmentsAreImages(...attachments: Array<Attachment | null | undefine
   return attachments.every(
     (attachment) => !attachment || attachment.contentType?.startsWith("image/") === true,
   );
+}
+
+async function handleResponseCommand(
+  interaction: ChatInputCommandInteraction,
+  store: PanelStore,
+  drafts: ResponseDraftStore,
+): Promise<void> {
+  if (!interaction.guildId) {
+    await interaction.reply({ content: "Use este comando dentro de um servidor.", flags: MessageFlags.Ephemeral });
+    return;
+  }
+
+  const panelId = interaction.options.getString("painel_id", true);
+  const panel = store.get(panelId);
+  if (!panel || panel.guildId !== interaction.guildId) {
+    await interaction.reply({ content: "Painel não encontrado neste servidor.", flags: MessageFlags.Ephemeral });
+    return;
+  }
+
+  const kind = interaction.options.getString("origem", true) as ResponseTargetKind;
+  const identifier = interaction.options.getString("alvo", true);
+  const target = findResponseTarget(panel, kind, identifier);
+  if (!target) {
+    await interaction.reply({
+      content: kind === "option"
+        ? "Opção não encontrada. Use o valor interno ou o nome exibido no dropdown."
+        : "Botão não encontrado. Use o número (começando em 1) ou o nome exibido.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const item = getResponseTargetItem(panel, target);
+  if (target.kind === "button" && item && "style" in item && item.style === "link") {
+    await interaction.reply({
+      content: "Botões de link abrem uma URL diretamente e não podem gerar uma resposta interativa.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const subcommand = interaction.options.getSubcommand(true);
+  if (subcommand === "visualizar") {
+    const response = resolveResponsePanel(panel, target);
+    await interaction.reply({
+      components: renderResponsePanel(panel, response, target),
+      flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+    });
+    return;
+  }
+
+  if (subcommand === "remover") {
+    if (!item?.responsePanel) {
+      await interaction.reply({
+        content: "Esta ação já usa o formato simples e não possui resposta avançada.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+    await store.save(removeResponsePanel(panel, target));
+    await interaction.reply({
+      content: `Resposta avançada de **${responseTargetLabel(panel, target)}** removida. A resposta simples foi preservada.`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const banner = interaction.options.getAttachment("banner");
+  const thumbnail = interaction.options.getAttachment("miniatura");
+  if (!attachmentsAreImages(banner, thumbnail)) {
+    await interaction.reply({
+      content: "Banner e miniatura precisam ser PNG, JPG, GIF ou WEBP.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const currentResponse = resolveResponsePanel(panel, target);
+  const publicOption = interaction.options.getBoolean("publica");
+  const draft = drafts.create({
+    panelId,
+    target,
+    userId: interaction.user.id,
+    guildId: interaction.guildId,
+    visibility: publicOption === null
+      ? currentResponse.visibility
+      : publicOption ? "public" : "private",
+    ...(banner
+      ? {
+          banner: {
+            url: banner.url,
+            ...(banner.description ? { description: banner.description } : {}),
+          },
+        }
+      : {}),
+    ...(thumbnail ? { thumbnailUrl: thumbnail.url } : {}),
+  });
+  await interaction.showModal(buildResponseStudioModal(draft.id, currentResponse));
+}
+
+async function handleResponseModal(
+  interaction: ModalSubmitInteraction,
+  store: PanelStore,
+  drafts: ResponseDraftStore,
+): Promise<void> {
+  const draftId = interaction.customId.slice("cv2-response-config:".length);
+  const draft = drafts.take(draftId, interaction.user.id, interaction.guildId);
+  if (!draft) {
+    await interaction.reply({
+      content: "Este editor expirou ou pertence a outro usuário. Execute `/resposta configurar` novamente.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const panel = store.get(draft.panelId);
+  if (!panel || panel.guildId !== interaction.guildId || !getResponseTargetItem(panel, draft.target)) {
+    await interaction.reply({
+      content: "O painel ou a ação foi removido enquanto o editor estava aberto.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const parsed = responseModalToSpec(interaction, draft.visibility);
+  const response = applyResponseDraftMedia(parsed, draft);
+  const updated = assignResponsePanel(panel, draft.target, response);
+  await store.save(updated);
+  await interaction.reply({
+    components: renderResponsePanel(updated, response, draft.target),
+    flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+  });
+  await interaction.followUp({
+    content: `Resposta de **${responseTargetLabel(updated, draft.target)}** salva em modo **${response.visibility === "public" ? "público" : "privado"}**.`,
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+function responseFlags(
+  response: PanelResponseSpec,
+): MessageFlags.IsComponentsV2 | Array<MessageFlags.Ephemeral | MessageFlags.IsComponentsV2> {
+  return response.visibility === "public"
+    ? MessageFlags.IsComponentsV2
+    : [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2];
 }
 
 async function controlAnimation(

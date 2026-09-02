@@ -60,3 +60,12 @@ test("interpreta temas, seções, mídia e botões avançados", () => {
   assert.equal(panel.buttons?.[0]?.style, "success");
   assert.equal(panel.buttons?.[1]?.style, "link");
 });
+
+test("interpreta emoji e quebras de linha na resposta do dropdown", () => {
+  const panel = parsePanelRequest(
+    "titulo: Central; opcoes: Cargos|cargos|Linha 1\\nLinha 2|Consultar progressão|🏆",
+  );
+
+  assert.equal(panel.options[0]?.emoji, "🏆");
+  assert.equal(panel.options[0]?.response, "Linha 1\nLinha 2");
+});

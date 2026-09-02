@@ -61,11 +61,11 @@ export function buildStudioModal(): ModalBuilder {
       ),
       label(
         "Dropdown",
-        "Rótulo|valor|resposta|descrição; separe opções com vírgula",
+        "Rótulo|valor|resposta|descrição|emoji; separe opções com vírgula",
         new TextInputBuilder()
           .setCustomId(fieldIds.options)
           .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder("Suporte|suporte|Seu atendimento começou.|Ajuda técnica, Regras|regras|Leia as regras.|Normas")
+          .setPlaceholder("Suporte|suporte|Atendimento iniciado.|Ajuda técnica|🎫, Regras|regras|Leia as regras.|Normas|📜")
           .setMaxLength(1_500)
           .setRequired(false),
       ),

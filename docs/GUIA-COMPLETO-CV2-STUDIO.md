@@ -1,4 +1,4 @@
-# Guia Completo do CV2 Studio 2.0
+# Guia Completo do CV2 Studio 2.1
 
 Manual para instalação, configuração e utilização do bot Discord CV2 Studio.
 
@@ -77,7 +77,7 @@ Antes de começar, você precisa ter:
 1. Uma conta no Discord.
 2. Um servidor em que você possua a permissão **Gerenciar servidor**.
 3. Node.js 20 ou mais recente instalado.
-4. Os arquivos do CV2 Studio 2.0.
+4. Os arquivos do CV2 Studio 2.1.
 5. Uma aplicação criada no Discord Developer Portal.
 6. Um terminal PowerShell.
 
@@ -520,7 +520,7 @@ O bot adiciona automaticamente os separadores entre seções.
 Formato:
 
 ```text
-Rótulo|valor|resposta privada|descrição curta
+Rótulo|valor|resposta privada|descrição curta|emoji
 ```
 
 Exemplo:
@@ -781,7 +781,7 @@ Confirme que o bot continua online e possui acesso ao canal.
 
 ### Dropdown responde, mas outras pessoas não veem
 
-Esse é o comportamento correto. As respostas do dropdown são privadas.
+Esse é o comportamento padrão. Respostas simples e respostas avançadas são privadas, a menos que você execute `/resposta configurar` com `publica: Sim`.
 
 ### Banner não aparece
 
@@ -812,7 +812,135 @@ Teste cada opção e botão.
 
 ---
 
-## 26. Referência rápida
+## 26. Respostas CV2 completas
+
+As opções do dropdown e os botões interativos podem abrir uma nova composição Components V2 completa. Essas respostas podem ter:
+
+- Título e descrição próprios.
+- Tema e cor independentes.
+- Autor e rodapé.
+- Miniatura.
+- Até 6 seções.
+- Galeria com até 10 imagens ou GIFs.
+- Até 5 botões de ação ou links.
+- Modo privado ou público.
+
+### 26.1 Localizar o painel e a ação
+
+Ao criar um painel, o bot envia um ID administrativo:
+
+```text
+Painel criado. ID administrativo: a1b2c3d4
+```
+
+No dropdown, o alvo pode ser o valor interno ou o rótulo visível. Neste exemplo:
+
+```text
+opcoes: Consultar cargos|cargos|Resposta simples.|Progressão|🏆
+```
+
+Você pode usar `cargos` ou `Consultar cargos` como alvo.
+
+Nos botões, use o nome ou a posição começando em 1. Botões de link não geram respostas, pois abrem a URL diretamente.
+
+### 26.2 Abrir o editor
+
+Resposta de uma opção:
+
+```text
+/resposta configurar painel_id:a1b2c3d4 origem:Opção do dropdown alvo:cargos publica:Não
+```
+
+Resposta de um botão:
+
+```text
+/resposta configurar painel_id:a1b2c3d4 origem:Botão alvo:1 publica:Não
+```
+
+Os parâmetros opcionais `banner` e `miniatura` aceitam PNG, JPG, GIF e WebP.
+
+### 26.3 Campos do formulário
+
+**Título da resposta**
+
+```text
+Sistema de cargos e progressão
+```
+
+**Descrição**
+
+```text
+Veja como evoluir e desbloquear benefícios exclusivos.
+```
+
+**Visual e identificação**
+
+```text
+tema: gaming; cor: #9B59FF; autor: Sistema de níveis; rodape: Progressão oficial
+```
+
+Também é possível usar uma miniatura por URL:
+
+```text
+tema: gaming; cor: #9B59FF; miniatura: https://example.com/icon.gif
+```
+
+**Seções**
+
+```text
+Como ganhar XP|Participe das conversas e eventos.|⭐|sim >> Progressão|Aprendiz ➜ 1.000 XP\nVeterano ➜ 5.000 XP|🏆|sim >> Benefícios|Cores e canais exclusivos.|🎁
+```
+
+**Galeria e botões**
+
+```text
+imagem: https://example.com/banner.gif|Banner animado; botoes: Confirmar|success|Escolha confirmada.|✅ >> Site|link|https://example.com|🔗
+```
+
+Botões internos geram uma confirmação CV2 privada. Botões `link` abrem a URL e não enviam outra mensagem.
+
+### 26.4 Privada ou pública
+
+- `publica: Não`: somente a pessoa que interagiu vê a resposta.
+- `publica: Sim`: a resposta é publicada no canal a cada interação.
+
+Use o modo público com cautela para evitar várias mensagens no canal.
+
+### 26.5 Visualizar e remover
+
+Prévia privada:
+
+```text
+/resposta visualizar painel_id:a1b2c3d4 origem:Opção do dropdown alvo:cargos
+```
+
+Remover o layout avançado:
+
+```text
+/resposta remover painel_id:a1b2c3d4 origem:Opção do dropdown alvo:cargos
+```
+
+O comando de remoção preserva a resposta simples que já existia antes da personalização.
+
+As respostas completas não executam animação de cor do Container. Para movimento visual, use GIF ou WebP no banner, galeria ou miniatura. Isso evita tarefas permanentes para mensagens privadas e múltiplas respostas criadas por usuários diferentes.
+
+### 26.6 Compatibilidade e persistência
+
+Não é necessário editar o JSON. Painéis antigos continuam funcionando normalmente. A configuração avançada fica no campo `responsePanel` da opção ou botão e é salva no mesmo arquivo configurado por `DATA_FILE`.
+
+Depois de atualizar o projeto para a versão 2.1, execute novamente:
+
+```powershell
+npm install
+npm run commands
+npm run dev
+```
+
+O registro dos comandos é necessário para o Discord exibir `/resposta`.
+
+---
+
+## 27. Referência rápida
 
 ```text
 tema: minimal | elegant | cute | gaming | rules
@@ -821,7 +949,7 @@ titulo: texto
 descricao: texto
 cor: #RRGGBB
 secoes: Título|Texto|Emoji|sim >> Outra|Texto|Emoji
-opcoes: Rótulo|valor|resposta|descrição, Outra|valor|resposta|descrição
+opcoes: Rótulo|valor|resposta|descrição|emoji, Outra|valor|resposta|descrição|emoji
 botoes: Rótulo|primary|resposta|emoji >> Site|link|https://...
 imagem: URL|descrição >> URL|descrição
 miniatura: URL
@@ -833,7 +961,7 @@ rodape: texto
 
 ---
 
-## 27. Checklist final
+## 28. Checklist final
 
 - [ ] Aplicação criada no Developer Portal.
 - [ ] Token copiado com segurança.
@@ -845,8 +973,32 @@ rodape: texto
 - [ ] `/exemplo` funciona.
 - [ ] Dropdown responde privadamente.
 - [ ] Botões respondem.
+- [ ] `/resposta configurar` abre o editor.
+- [ ] A prévia da resposta completa funciona.
 - [ ] Banner e miniatura aparecem.
 - [ ] Animação funciona.
 - [ ] Pasta `data` possui backup.
 
 Com esses passos, o CV2 Studio estará pronto para criar e manter painéis profissionais no servidor.
+
+---
+
+## 29. Catálogo de Containers profissionais
+
+O projeto inclui um catálogo separado com exemplos completos e prontos para copiar dos cinco temas:
+
+- `minimal`: central de avisos.
+- `elegant`: portal principal da comunidade.
+- `cute`: boas-vindas e comunidade aesthetic.
+- `gaming`: perfil, inventário e progressão.
+- `rules`: regras, segurança e moderação.
+
+O catálogo também ensina a transformar opções de dropdown e botões em novos Containers CV2 completos, mostra uma demonstração que combina quase todos os recursos e inclui um checklist de qualidade.
+
+Abra o arquivo:
+
+```text
+examples/CATALOGO-CONTAINERS-PROFISSIONAIS.md
+```
+
+Cada bloco marcado como **Pedido pronto** deve ser colado no campo `pedido` do comando `/painel`. Imagens do computador devem ser enviadas pelos parâmetros `banner` e `miniatura`, sem inserir caminhos locais dentro do pedido.

@@ -163,21 +163,23 @@ function parseOptions(value: string): SelectOptionSpec[] {
     .slice(0, 25);
 
   const options = chunks.map((chunk, index) => {
-    const [rawLabel, rawValue, rawResponse, rawDescription] = chunk
+    const [rawLabel, rawValue, rawResponse, rawDescription, rawEmoji] = chunk
       .split("|")
       .map((part) => part.trim());
     const label = truncate(rawLabel || `Opção ${index + 1}`, 100);
     const optionValue = truncate(rawValue || slugify(label), 100);
     const response = truncate(
-      neutralizeMentions(rawResponse || `Você selecionou **${label}**.`),
+      neutralizeMentions((rawResponse || `Você selecionou **${label}**.`).replaceAll("\\n", "\n")),
       1_500,
     );
     const description = rawDescription ? truncate(rawDescription, 100) : undefined;
+    const emoji = rawEmoji ? truncate(rawEmoji, 40) : undefined;
     return {
       label,
       value: optionValue,
       response,
       ...(description ? { description } : {}),
+      ...(emoji ? { emoji } : {}),
     };
   });
 
